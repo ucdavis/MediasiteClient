@@ -87,8 +87,11 @@ namespace MediasiteUtil
 
 				if (_client == null)
 				{
-					_client = new RestClient(_config.Endpoint);
-					_client.Authenticator = new Auth(_config.Username, _config.Password, _config.ApiKey);
+					var options = new RestClientOptions(_config.Endpoint)
+					{
+						Authenticator = new Auth(_config.Username, _config.Password, _config.ApiKey)
+                    };
+					_client = new RestClient(options);
 					_client.AddDefaultHeader("sfapikey", _config.ApiKey);
 				}
 				return _client;
@@ -427,8 +430,11 @@ namespace MediasiteUtil
 		public string UploadMediaFile(String presentationId, String filePath)
 		{
 			var fileNameOnly = Path.GetFileName(filePath);
-			var uploadClient = new RestClient("https://mediasite.ucdavis.edu/mediasite/");
-			uploadClient.Authenticator = new MediasiteUtil.Models.Auth(_config.Username, _config.Password, _config.ApiKey);
+			var options = new RestClientOptions("https://mediasite.ucdavis.edu/mediasite/")
+			{
+				Authenticator = new MediasiteUtil.Models.Auth(_config.Username, _config.Password, _config.ApiKey)
+			};
+			var uploadClient = new RestClient(options);
 			var request = new RestRequest(String.Format("FileServer/Presentation/{0}/{1}", presentationId, Path.GetFileName(filePath)), Method.Put);
 			request.AddFile(fileNameOnly, filePath);
 			var results = uploadClient.Execute(request);
@@ -446,10 +452,13 @@ namespace MediasiteUtil
 		public Response<string> UploadMediaFileWithResponse(String presentationId, String filePath, long fileLength, string sendAsName)
 		{
 			var fileNameOnly = Path.GetFileName(filePath);
-			var uploadClient = new RestClient("https://mediasite.ucdavis.edu/mediasite/");
-			uploadClient.Authenticator = new Auth(_config.Username, _config.Password, _config.ApiKey);
+			var options = new RestClientOptions("https://mediasite.ucdavis.edu/mediasite/")
+			{
+				Authenticator = new Auth(_config.Username, _config.Password, _config.ApiKey)
+			};
+			var uploadClient = new RestClient(options);
 			var request = new RestRequest(String.Format("FileServer/Presentation/{0}/{1}", presentationId, sendAsName), Method.Put);
-			request.Timeout = 10 * 60 * 1000; // 10 minute timeout for upload
+			request.Timeout = new TimeSpan(0, 10, 0); // 10 minute timeout for upload
 			request.AddFile("file", filePath);
 			var results = uploadClient.Execute(request);
 			var responseObject = GetResponse(HttpStatusCode.Created, request, results);
@@ -813,13 +822,25 @@ namespace MediasiteUtil
 			var filter = String.Format("Name eq '{0}'", scheduleName);
 			return GetScheduleWithFilter(filter);
 		}
-		
-		/// <summary>
-		/// Return a single schedule matching a generic search filter
-		/// </summary>
-		/// <param name="filter"></param>
-		/// <returns></returns>
-		private Schedule GetScheduleWithFilter(string filter)
+
+        /// <summary>
+        /// Finds and returns a schedule by schedule name in a given folder, exact match
+        /// </summary>
+        /// <param name="scheduleName"></param>
+        /// <returns></returns>
+        public Schedule FindSchedule(string scheduleName, string parentFolderId)
+        {
+            // build a filter to find the schedule
+			var filter = String.Format("Name eq '{0}' and ParentFolderId eq '{1}'", scheduleName, parentFolderId);
+            return GetScheduleWithFilter(filter);
+        }
+
+        /// <summary>
+        /// Return a single schedule matching a generic search filter
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        private Schedule GetScheduleWithFilter(string filter)
 		{
 			// request the schedule
 			var schedules = new List<Schedule>();

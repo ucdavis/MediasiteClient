@@ -9,12 +9,12 @@
     <RepositoryUrl>gitproj/MediasiteUtil</RepositoryUrl>
     <PackageTags>Mediasite API REST Client</PackageTags>
     <PackageReleaseNotes>Initial release</PackageReleaseNotes>
-    <Version>1.0.5</Version>
+    <Version>1.0.6</Version>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="RestSharp" Version="108.0.3" />
+    <PackageReference Include="RestSharp" Version="112.1.0" />
   </ItemGroup>
 
 </Project>
