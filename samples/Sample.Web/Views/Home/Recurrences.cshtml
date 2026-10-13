@@ -1,0 +1,11 @@
+﻿@model IEnumerable<MediasiteUtil.Models.Recurrences>
+@{
+    ViewData["Title"] = "Mediasite Schedule Recurrences";
+}
+
+<h1 class="display-4">Mediasite Schedule Recurrences</h1>
+
+@foreach (var recurrence in @Model)
+{
+    <p><b>Start @recurrence.StartRecordDateTime</b> - Duration @recurrence.RecordDuration - </p>
+}

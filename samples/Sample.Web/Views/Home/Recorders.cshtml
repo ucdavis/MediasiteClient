@@ -1,0 +1,11 @@
+﻿@model IEnumerable<MediasiteUtil.Models.Recorder>
+@{
+    ViewData["Title"] = "Mediasite Recorders";
+}
+
+<h1 class="display-4">Mediasite Recorders</h1>
+
+@foreach (var recorder in @Model)
+{
+    <p><a href="/Home/Schedules?recorderId=@recorder.Id">SCH</a> @recorder.Name - @recorder.Description</p>
+}

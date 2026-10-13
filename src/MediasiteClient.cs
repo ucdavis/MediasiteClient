@@ -280,11 +280,39 @@ namespace MediasiteUtil
 			return catalogs.Data[0];
 		}
 
-		/// <summary>
-		/// Gets all Players
-		/// </summary>
-		/// <returns></returns>
-		public List<Player> GetPlayers()
+
+        /// <summary>
+        /// Finds and returns a MediasiteChannel by Channel name, exact match.
+        /// </summary>
+        /// <param name="channelName"></param>
+        /// <returns></returns>
+        public Catalog FindChannel(string channelName)
+        {
+            var request = new RestRequest("MediasiteChannels", Method.Get);
+            request.AddParameter("$filter", String.Format("Name eq '{0}'", channelName));
+            request.RootElement = "value";
+            var catalogs = Client.Execute<OData<List<Catalog>>>(request);
+
+            System.Diagnostics.Trace.WriteLine($"{DateTime.Now} - msclient.FindChannel({channelName})");
+            System.Diagnostics.Trace.WriteLine($"  status: {catalogs.StatusCode}");
+            System.Diagnostics.Trace.WriteLine($"  error: {catalogs.ErrorMessage}");
+            //System.Diagnostics.Trace.WriteLine($"  content: {catalogs.Content}");
+
+            // check for errors and expected number of results
+            ExpectResponse(HttpStatusCode.OK, request, catalogs);
+            // filter for exact match, since Mediasite Search service will return all results
+            // where searchterm appears anywhere in the Title.
+            catalogs.Data.Value = catalogs.Data.Value.Where(c => c.Name == channelName).ToList();
+            ExpectSingleResult(request, catalogs.Data.Value);
+
+            return catalogs.Data.Value[0];
+        }
+
+        /// <summary>
+        /// Gets all Players
+        /// </summary>
+        /// <returns></returns>
+        public List<Player> GetPlayers()
 		{
 			// pagination
 			var returned = _batchSize;
@@ -854,13 +882,30 @@ namespace MediasiteUtil
 
 			return schedules[0];
 		}
-		
-		/// <summary>
-		/// Finds and returns a schedule's recurrences by schedule ID, exact match
-		/// </summary>
-		/// <param name="scheduleId"></param>
-		/// <returns></returns>
-		public List<Recurrences> GetScheduleRecurrences(string scheduleId)
+
+        /// <summary>
+        /// Return all schedules matching a name and/or recorder name filter
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        public IEnumerable<Schedule> GetSchedulesWithFilter(string filter)
+        {
+            // request the schedule
+            var schedules = new List<Schedule>();
+            var request = CreatePagedRestRequest("Schedules", filter, "Name", _batchSize, 0);
+            var results = Client.Execute<OData<List<Schedule>>>(request);
+            ExpectResponse(HttpStatusCode.OK, request, results);
+            schedules.AddRange(results.Data.Value);
+
+            return schedules;
+        }
+
+        /// <summary>
+        /// Finds and returns a schedule's recurrences by schedule ID, exact match
+        /// </summary>
+        /// <param name="scheduleId"></param>
+        /// <returns></returns>
+        public List<Recurrences> GetScheduleRecurrences(string scheduleId)
 		{
 			// pagination
 			var returned = _batchSize;

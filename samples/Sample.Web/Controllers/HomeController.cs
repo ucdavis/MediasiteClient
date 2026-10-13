@@ -38,6 +38,45 @@ namespace Sample.Web.Controllers
             return View(templates);
         }
 
+        public IActionResult Recorders()
+        {
+            var recorders = _mediasite.GetRecorders().OrderBy(r => r.Name);
+            return View(recorders);
+        }
+
+        public IActionResult Schedules(string? recorderId)
+        {
+            IEnumerable<Schedule> schedules;
+            if (recorderId is null)
+            {
+                var schedule = _mediasite.FindSchedule("Morri - Law 200A - U S Legal Seminar (LLM) | 90244");
+                schedules = new List<Schedule>() { schedule };
+            }
+            else
+            {
+                schedules = _mediasite.GetSchedulesWithFilter($"RecorderId eq '{recorderId}'");
+            }
+
+            return View(schedules);
+        }
+
+        public IActionResult Recurrences(string scheduleId)
+        {
+            if (String.IsNullOrEmpty(scheduleId))
+            {
+                return RedirectToAction("Schedules");
+            }
+
+            var recurrences = _mediasite.GetScheduleRecurrences(scheduleId);
+            return View(recurrences);
+        }
+
+        public IActionResult LawChannel()
+        {
+            var channel = _mediasite.FindChannel("Law");
+            return View(channel);
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
