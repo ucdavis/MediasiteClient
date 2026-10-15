@@ -71,9 +71,13 @@ namespace Sample.Web.Controllers
             return View(recurrences);
         }
 
-        public IActionResult LawChannel()
+        public IActionResult LawChannel(bool auth = false)
         {
             var channel = _mediasite.FindChannel("Law");
+            if (auth)
+            {
+                _mediasite.GetAuthTicket(channel.Id, 120, "bob");
+            }
             return View(channel);
         }
 
